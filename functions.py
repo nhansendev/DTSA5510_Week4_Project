@@ -240,13 +240,27 @@ class NMF_instance:
     def predict(self, X):
         return np.argmax(self.model.transform(X), 1)
     
-    def eval_accuracy(self, X, categories):
+    def apply_invcatmap(self, prediction):
+        self.get_invcatmap()
+        if isinstance(prediction, pd.DataFrame) or isinstance(prediction, pd.Series):
+            mapped = prediction.map(self.invcatmap)
+        else:
+            mapped = []
+            for r in range(len(prediction)):
+                mapped.append(self.invcatmap[prediction[r]])
+        return mapped
+
+    def apply_catmap(self, categories):
         if isinstance(categories, pd.DataFrame) or isinstance(categories, pd.Series):
             mapped = categories.map(self.catmap)
         else:
             mapped = []
             for r in range(len(categories)):
                 mapped.append(self.catmap[categories[r]])
+        return mapped
+    
+    def eval_accuracy(self, X, categories):
+        mapped = self.apply_catmap(categories)
         self.acc = accuracy_score(mapped, self.predict(X))
         return self.acc
         
